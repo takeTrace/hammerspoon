@@ -229,9 +229,9 @@ end
 ---  * None
 
 local function getCellSize(theScreen)
-  getGrid(theScreen)
+  local g = getGrid(theScreen)
   local screenframe=getGridFrame(theScreen)
-  return geom.size(screenframe.w/grid.w,screenframe.h/grid.h)
+  return geom.size(screenframe.w / g.w, screenframe.h / g.h)
 end
 
 local function round(num, idp)
@@ -299,7 +299,7 @@ end
 ---  * win - an `hs.window` object representing the window to operate on
 ---  * cell - a cell object, i.e. an `hs.geometry` rect or argument to construct one, to apply to the window
 ---  * screen - (optional) an `hs.screen` object or argument to `hs.screen.find()` representing the screen to place the window on; if omitted
----             the window's current screen will be used
+---    the window's current screen will be used
 ---
 --- Returns:
 ---  * the `hs.grid` module for method chaining

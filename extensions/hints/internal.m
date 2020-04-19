@@ -92,7 +92,7 @@ static float hintIconAlpha = 0.95;
     [[NSGraphicsContext currentContext] setShouldAntialias:YES];
 
     if (icon != nil) {
-        [icon drawInRect:iconFrame fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:hintIconAlpha];
+        [icon drawInRect:iconFrame fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:hintIconAlpha];
     }
 
     // get label info for sizing
@@ -129,7 +129,7 @@ static float hintIconAlpha = 0.95;
     CGRect frame = NSMakeRect(pt.x - (height/2.0),
                               screen.frame.size.height - pt.y - (height/2.0), 100, 75);
     self = [super initWithContentRect:frame
-                            styleMask:NSBorderlessWindowMask
+                            styleMask:NSWindowStyleMaskBorderless
                               backing:NSBackingStoreBuffered
                                 defer:NO
                                screen:screen];
@@ -223,8 +223,8 @@ static const luaL_Reg hints_metalib[] = {
     {NULL, NULL}
 };
 
-int luaopen_hs_hints_internal(lua_State* L __unused) {
-    LuaSkin *skin = [LuaSkin shared];
+int luaopen_hs_hints_internal(lua_State* L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L];
     [skin registerLibraryWithObject:USERDATA_TAG functions:hintslib metaFunctions:nil objectFunctions:hints_metalib];
 
     return 1;

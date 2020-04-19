@@ -87,27 +87,27 @@
         self.reloadWhenVisible = NO;
     }
 
-    [self addShortcut:@"1" keyCode:-1 mods:NSCommandKeyMask handler:^{ [_self tableView:_tableView didClickedRow:0]; }];
-    [self addShortcut:@"2" keyCode:-1 mods:NSCommandKeyMask handler:^{ [_self tableView:_tableView didClickedRow:1]; }];
-    [self addShortcut:@"3" keyCode:-1 mods:NSCommandKeyMask handler:^{ [_self tableView:_tableView didClickedRow:2]; }];
-    [self addShortcut:@"4" keyCode:-1 mods:NSCommandKeyMask handler:^{ [_self tableView:_tableView didClickedRow:3]; }];
-    [self addShortcut:@"5" keyCode:-1 mods:NSCommandKeyMask handler:^{ [_self tableView:_tableView didClickedRow:4]; }];
-    [self addShortcut:@"6" keyCode:-1 mods:NSCommandKeyMask handler:^{ [_self tableView:_tableView didClickedRow:5]; }];
-    [self addShortcut:@"7" keyCode:-1 mods:NSCommandKeyMask handler:^{ [_self tableView:_tableView didClickedRow:6]; }];
-    [self addShortcut:@"8" keyCode:-1 mods:NSCommandKeyMask handler:^{ [_self tableView:_tableView didClickedRow:7]; }];
-    [self addShortcut:@"9" keyCode:-1 mods:NSCommandKeyMask handler:^{ [_self tableView:_tableView didClickedRow:8]; }];
-    [self addShortcut:@"0" keyCode:-1 mods:NSCommandKeyMask handler:^{ [_self tableView:_tableView didClickedRow:9]; }];
+    [self addShortcut:@"1" keyCode:-1 mods:NSEventModifierFlagCommand handler:^{ [_self tableView:_tableView didClickedRow:0]; }];
+    [self addShortcut:@"2" keyCode:-1 mods:NSEventModifierFlagCommand handler:^{ [_self tableView:_tableView didClickedRow:1]; }];
+    [self addShortcut:@"3" keyCode:-1 mods:NSEventModifierFlagCommand handler:^{ [_self tableView:_tableView didClickedRow:2]; }];
+    [self addShortcut:@"4" keyCode:-1 mods:NSEventModifierFlagCommand handler:^{ [_self tableView:_tableView didClickedRow:3]; }];
+    [self addShortcut:@"5" keyCode:-1 mods:NSEventModifierFlagCommand handler:^{ [_self tableView:_tableView didClickedRow:4]; }];
+    [self addShortcut:@"6" keyCode:-1 mods:NSEventModifierFlagCommand handler:^{ [_self tableView:_tableView didClickedRow:5]; }];
+    [self addShortcut:@"7" keyCode:-1 mods:NSEventModifierFlagCommand handler:^{ [_self tableView:_tableView didClickedRow:6]; }];
+    [self addShortcut:@"8" keyCode:-1 mods:NSEventModifierFlagCommand handler:^{ [_self tableView:_tableView didClickedRow:7]; }];
+    [self addShortcut:@"9" keyCode:-1 mods:NSEventModifierFlagCommand handler:^{ [_self tableView:_tableView didClickedRow:8]; }];
+    [self addShortcut:@"0" keyCode:-1 mods:NSEventModifierFlagCommand handler:^{ [_self tableView:_tableView didClickedRow:9]; }];
 
     [self addShortcut:@"Escape" keyCode:27 mods:0 handler:^{ [_window resignKeyWindow]; }];
 
-    [self addShortcut:@"Up" keyCode:NSUpArrowFunctionKey mods:NSFunctionKeyMask|NSNumericPadKeyMask handler:^{ [_self selectPreviousChoice]; }];
-    [self addShortcut:@"Down" keyCode:NSDownArrowFunctionKey mods:NSFunctionKeyMask|NSNumericPadKeyMask handler:^{ [_self selectNextChoice]; }];
-    [self addShortcut:@"p" keyCode:-1 mods:NSControlKeyMask handler:^{ [_self selectPreviousChoice]; }];
-    [self addShortcut:@"n" keyCode:-1 mods:NSControlKeyMask handler:^{ [_self selectNextChoice]; }];
+    [self addShortcut:@"Up" keyCode:NSUpArrowFunctionKey mods:NSEventModifierFlagFunction|NSEventModifierFlagNumericPad handler:^{ [_self selectPreviousChoice]; }];
+    [self addShortcut:@"Down" keyCode:NSDownArrowFunctionKey mods:NSEventModifierFlagFunction|NSEventModifierFlagNumericPad handler:^{ [_self selectNextChoice]; }];
+    [self addShortcut:@"p" keyCode:-1 mods:NSEventModifierFlagControl handler:^{ [_self selectPreviousChoice]; }];
+    [self addShortcut:@"n" keyCode:-1 mods:NSEventModifierFlagControl handler:^{ [_self selectNextChoice]; }];
 
-    [self addShortcut:@"PageUp" keyCode:NSPageUpFunctionKey mods:NSFunctionKeyMask handler:^{ [_self selectPreviousPage]; }];
-    [self addShortcut:@"PageDown" keyCode:NSPageDownFunctionKey mods:NSFunctionKeyMask handler:^{ [_self selectNextPage]; }];
-    [self addShortcut:@"v" keyCode:-1 mods:NSControlKeyMask handler:^{ [_self selectNextPage]; }];
+    [self addShortcut:@"PageUp" keyCode:NSPageUpFunctionKey mods:NSEventModifierFlagFunction handler:^{ [_self selectPreviousPage]; }];
+    [self addShortcut:@"PageDown" keyCode:NSPageDownFunctionKey mods:NSEventModifierFlagFunction handler:^{ [_self selectNextPage]; }];
+    [self addShortcut:@"v" keyCode:-1 mods:NSEventModifierFlagControl handler:^{ [_self selectNextPage]; }];
 }
 
 - (void)windowDidResignKey:(NSNotification *)notification {
@@ -212,19 +212,17 @@
     self.hasChosen = NO;
 
     // Call hs.chooser.globalCallback("willShow")
-    LuaSkin *skin = [LuaSkin shared];
+    LuaSkin *skin = [LuaSkin sharedWithState:NULL];
     lua_State *L = skin.L;
     _lua_stackguard_entry(L);
-    lua_getglobal(L, "hs");
-    lua_getfield(L, -1, "chooser");
-    lua_getfield(L, -1, "globalCallback");
-
-    // Remove `chooser` and `hs` from the stack
-    lua_remove(L, -3);
-    lua_remove(L, -2);
+    [skin requireModule:"hs.chooser"] ;
+    lua_getfield(L, -1, "globalCallback") ;
+    lua_remove(L, -2) ;
 
     // Check the type of `globalCallback`
-    if (lua_type(L, -1) != LUA_TFUNCTION) {
+    if (lua_type(L, -1) == LUA_TNIL) {
+        lua_remove(L, -1);
+    } else if (lua_type(L, -1) != LUA_TFUNCTION) {
         [skin logError:[NSString stringWithFormat:@"hs.chooser.globalCallback is expected to be a function, but is a %s", lua_typename(L, lua_type(L, -1))]];
         // Remove whatever `globalCallback` is, from the stack
         lua_remove(L, -1);
@@ -249,10 +247,10 @@
 
     [self.window setLevel:(CGWindowLevelForKey(kCGMainMenuWindowLevelKey) + 3)];
 
-    if (!self.window.isKeyWindow) {
-        NSApplication *app = [NSApplication sharedApplication];
-        [app activateIgnoringOtherApps:YES];
-    }
+    //if (!self.window.isKeyWindow) {
+    //    NSApplication *app = [NSApplication sharedApplication];
+    //    [app activateIgnoringOtherApps:YES];
+    //}
 
     [self controlTextDidChange:[NSNotification notificationWithName:@"Unused" object:nil]];
 
@@ -267,19 +265,18 @@
     self.window.isVisible = NO;
 
     // Call hs.chooser.globalCallback("didClose")
-    LuaSkin *skin = [LuaSkin shared];
+    LuaSkin *skin = [LuaSkin sharedWithState:NULL];
     lua_State *L = skin.L;
     _lua_stackguard_entry(L);
-    lua_getglobal(L, "hs");
-    lua_getfield(L, -1, "chooser");
-    lua_getfield(L, -1, "globalCallback");
+    [skin requireModule:"hs.chooser"] ;
+    lua_getfield(L, -1, "globalCallback") ;
+    lua_remove(L, -2) ;
 
-    // Remove `chooser` and `hs` from the stack
-    lua_remove(L, -3);
-    lua_remove(L, -2);
 
     // Check the type of `globalCallback`
-    if (lua_type(L, -1) != LUA_TFUNCTION) {
+    if (lua_type(L, -1) == LUA_TNIL) {
+        lua_remove(L, -1);
+    } else if (lua_type(L, -1) != LUA_TFUNCTION) {
         [skin logError:[NSString stringWithFormat:@"hs.chooser.globalCallback is expected to be a function, but is a %s", lua_typename(L, lua_type(L, -1))]];
         // Remove whatever `globalCallback` is, from the stack
         lua_remove(L, -1);
@@ -370,7 +367,7 @@
     if (row >= 0 && row < [[self getChoices] count]) {
         self.hasChosen = YES;
         [self hide];
-        LuaSkin *skin = [LuaSkin shared];
+        LuaSkin *skin = [LuaSkin sharedWithState:NULL];
         _lua_stackguard_entry(skin.L);
         NSDictionary *choice = [[self getChoices] objectAtIndex:row];
 
@@ -384,7 +381,7 @@
 - (void)didRightClickAtRow:(NSInteger)row {
     if (self.rightClickCallbackRef != LUA_NOREF && self.rightClickCallbackRef != LUA_REFNIL) {
         // We have a right click callback set
-        LuaSkin *skin = [LuaSkin shared];
+        LuaSkin *skin = [LuaSkin sharedWithState:NULL];
         _lua_stackguard_entry(skin.L);
         [skin pushLuaRef:*(self.refTable) ref:self.rightClickCallbackRef];
         lua_pushinteger(skin.L, row + 1);
@@ -398,8 +395,15 @@
 - (IBAction)cancel:(id)sender {
     //NSLog(@"HSChooser::cancel:");
     [self hide];
-    LuaSkin *skin = [LuaSkin shared];
+    LuaSkin *skin = [LuaSkin sharedWithState:NULL];
     _lua_stackguard_entry(skin.L);
+
+    if (![skin checkRefs:*(self.refTable), self.completionCallbackRef, LS_RBREAK]) {
+        [skin logWarn:@"Unable to call hs.chooser:completionCallback, reference is no longer valid"];
+        _lua_stackguard_exit(skin.L);
+        return;
+    }
+
     [skin pushLuaRef:*(self.refTable) ref:self.completionCallbackRef];
     lua_pushnil(skin.L);
     [skin protectedCallAndError:@"hs.chooser:completionCallback" nargs:1 nresults:0];
@@ -417,7 +421,7 @@
 
     if (self.queryChangedCallbackRef != LUA_NOREF && self.queryChangedCallbackRef != LUA_REFNIL) {
         // We have a query callback set, we are passing on responsibility for displaying/filtering results, to Lua
-        LuaSkin *skin = [LuaSkin shared];
+        LuaSkin *skin = [LuaSkin sharedWithState:NULL];
         _lua_stackguard_entry(skin.L);
         [skin pushLuaRef:*(self.refTable) ref:self.queryChangedCallbackRef];
         [skin pushNSObject:queryString];
@@ -455,7 +459,7 @@
 - (void)selectChoice:(NSInteger)row {
     NSUInteger numRows = [[self getChoices] count];
     if (row < 0 || row > (numRows - 1)) {
-        [[LuaSkin shared] logError:[NSString stringWithFormat:@"ERROR: unable to select row %li of %li", (long)row, (long)numRows]];
+        [LuaSkin logError:[NSString stringWithFormat:@"ERROR: unable to select row %li of %li", (long)row, (long)numRows]];
         return;
     }
     [self.choicesTableView selectRowIndexes:[NSIndexSet indexSetWithIndex:row] byExtendingSelection:NO];
@@ -541,7 +545,7 @@
         // We have a callback set
         if (self.currentCallbackChoices == nil) {
             // We have previously cached the callback choices
-            LuaSkin *skin = [LuaSkin shared];
+            LuaSkin *skin = [LuaSkin sharedWithState:NULL];
             _lua_stackguard_entry(skin.L);
             [skin pushLuaRef:*(self.refTable) ref:self.choicesCallbackRef];
             if ([skin protectedCallAndTraceback:0 nresults:1]) {
@@ -559,7 +563,7 @@
                 }
                 if (!callbackChoicesTypeCheckPass) {
                     // Light verification of the callback choices shows the format is wrong, so let's ignore it
-                    [[LuaSkin shared] logError:@"ERROR: data returned by hs.chooser:choices() callback could not be parsed correctly"];
+                    [LuaSkin logError:@"ERROR: data returned by hs.chooser:choices() callback could not be parsed correctly"];
                     self.currentCallbackChoices = nil;
                 }
             } else {
@@ -635,8 +639,8 @@
 
 - (void) addShortcut:(NSString*)key keyCode:(unsigned short)keyCode mods:(NSEventModifierFlags)mods handler:(dispatch_block_t)action {
     //NSLog(@"Adding shortcut for %lu %@:%i", mods, key, keyCode);
-    id x = [NSEvent addLocalMonitorForEventsMatchingMask:NSKeyDownMask handler:^ NSEvent*(NSEvent* event) {
-        NSEventModifierFlags flags = ([event modifierFlags] & NSDeviceIndependentModifierFlagsMask);
+    id x = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown handler:^ NSEvent*(NSEvent* event) {
+        NSEventModifierFlags flags = ([event modifierFlags] & NSEventModifierFlagDeviceIndependentFlagsMask);
         //NSLog(@"Got an event: %lu %@:%i", (unsigned long)flags, [event charactersIgnoringModifiers], [[event charactersIgnoringModifiers] characterAtIndex:0]);
 
         if (flags == mods) {
